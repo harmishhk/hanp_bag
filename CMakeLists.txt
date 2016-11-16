@@ -10,9 +10,10 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   rosbag
   roscpp
+  std_srvs
 )
 
-# find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost REQUIRED COMPONENTS filesystem)
 
 
 ## install python modules and global scripts
@@ -57,6 +58,7 @@ catkin_package(
     message_runtime
     rosbag
     roscpp
+    std_srvs
 #   DEPENDS
 #     system_lib
 )

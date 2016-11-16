@@ -33,6 +33,7 @@
 #include <ros/ros.h>
 
 #include <hanp_bag/SetString.h>
+#include <std_srvs/Trigger.h>
 
 #include <rosbag/bag.h>
 #include <rosbag/view.h>
@@ -47,14 +48,16 @@ public:
 
 private:
   // ros services
-  ros::ServiceServer set_bagfile_srv_;
+  ros::ServiceServer get_bags_srv_, set_bag_srv_;
 
-  std::string set_bagfile_srv_n_;
+  std::string get_bags_srv_n_, set_bag_srv_n_;
 
-  std::string bag_file_;
+  std::string bags_path_, bag_file_;
 
-  bool setBagFile(hanp_bag::SetString::Request &req,
-                  hanp_bag::SetString::Response &res);
+  bool getBags(std_srvs::Trigger::Request &req,
+               std_srvs::Trigger::Response &res);
+  bool setBag(hanp_bag::SetString::Request &req,
+              hanp_bag::SetString::Response &res);
 };
 }
 

@@ -1,0 +1,4 @@
+<launch>
+  <node name="hanp_bag" pkg="hanp_bag" type="hanp_bag_node" output="screen" />
+  <include file="$(find hanp_bag)/launch/rosbridge.launch" />
+</launch>

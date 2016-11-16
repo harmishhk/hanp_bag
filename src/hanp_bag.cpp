@@ -31,11 +31,15 @@
 #define NODE_NAME "hanp_bag"
 
 #define BAGS_PATH "/tmp/bags"
-#define SET_BAGFILE_SRV "/set_bag_file"
-
-#include <signal.h>
+#define GET_BAGS_SRV "get_bag_files"
+#define SET_BAG_SRV "set_bag_file"
 
 #include <hanp_bag/hanp_bag.h>
+
+#include <signal.h>
+#include <boost/filesystem.hpp>
+
+namespace fs = boost::filesystem;
 
 namespace hanp_bag {
 // empty constructor and destructor
@@ -47,27 +51,57 @@ void HANPBag::init() {
   ros::NodeHandle nh("~/");
 
   // get parameters
-  nh.param("set_bagfile_srv", set_bagfile_srv_n_, std::string(SET_BAGFILE_SRV));
+  nh.param("bags_path", bags_path_, std::string(BAGS_PATH));
+  nh.param("get_bags_srv", get_bags_srv_n_, std::string(GET_BAGS_SRV));
+  nh.param("set_bag_srv", set_bag_srv_n_, std::string(SET_BAG_SRV));
 
   // initialize services
-  set_bagfile_srv_ =
-      nh.advertiseService(set_bagfile_srv_n_, &HANPBag::setBagFile, this);
+  get_bags_srv_ = nh.advertiseService(get_bags_srv_n_, &HANPBag::getBags, this);
+  set_bag_srv_ = nh.advertiseService(set_bag_srv_n_, &HANPBag::setBag, this);
 }
 
-bool HANPBag::setBagFile(hanp_bag::SetString::Request &req,
-                         hanp_bag::SetString::Response &res) {
+bool HANPBag::getBags(std_srvs::Trigger::Request &req,
+                      std_srvs::Trigger::Response &res) {
+  fs::path p(bags_path_);
+  try {
+    if (fs::exists(p) && fs::is_directory(p)) {
+      for (auto &bag_f : boost::make_iterator_range(fs::directory_iterator(p),
+                                                    fs::directory_iterator())) {
+        if (fs::is_regular_file(bag_f) && bag_f.path().extension() == ".bag") {
+          res.message += bag_f.path().filename().string() + std::string(";");
+        }
+      }
+      if (res.message != "") {
+        res.success = true;
+        res.message.pop_back();
+      }
+    } else {
+      res.success = false;
+      res.message =
+          std::string("Bags directory %s does not exist ") + bags_path_;
+      ROS_ERROR_NAMED(NODE_NAME, "%s", res.message.c_str());
+    }
+  } catch (const fs::filesystem_error &ex) {
+    res.success = false;
+    res.message = std::string("Filesystem error: ") + ex.what();
+    ROS_ERROR_NAMED(NODE_NAME, "%s", res.message.c_str());
+  }
+  return true;
+}
+
+bool HANPBag::setBag(hanp_bag::SetString::Request &req,
+                     hanp_bag::SetString::Response &res) {
   rosbag::Bag bag;
   try {
     bag.open(req.data, rosbag::bagmode::Read);
     bag.close();
     res.success = true;
-  } catch (rosbag::BagException ex) {
+  } catch (const rosbag::BagException &ex) {
     res.message = std::string("Cannot open bag file, ") + ex.what();
     res.success = true;
     ROS_ERROR_NAMED(NODE_NAME, "%s", res.message.c_str());
   }
-
-  return res.success;
+  return true;
 }
 } // namespace hanp_bag
 

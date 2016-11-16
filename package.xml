@@ -20,11 +20,13 @@
   <build_depend>message_generation</build_depend>
   <build_depend>rosbag</build_depend>
   <build_depend>roscpp</build_depend>
+  <build_depend>std_srvs</build_depend>
 
   <run_depend>message_filters</run_depend>
   <run_depend>message_runtime</run_depend>
   <run_depend>rosbag</run_depend>
   <run_depend>roscpp</run_depend>
+  <run_depend>std_srvs</run_depend>
 
   <!--  <test_depend>some_pkg</test_depend>  -->
 
